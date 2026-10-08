@@ -1,0 +1,109 @@
+---
+import { toFigmaEmbed } from '../lib/figma';
+
+interface Props {
+  title: string;
+  url: string;
+  device: 'mobile' | 'desktop';
+}
+
+const { title, url, device } = Astro.props;
+const embed = toFigmaEmbed(url);
+---
+
+<figure class="proto" data-device={device}>
+  <div class="proto__frame" data-proto data-src={embed} data-title={`Interactive prototype: ${title}`}>
+    <div class="proto__facade">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M5 3l14 9-14 9V3z"></path>
+      </svg>
+      <p class="proto__title">{title}</p>
+      <p class="proto__hint">
+        Click through the real {device === 'mobile' ? 'app' : 'interface'} in Figma. It loads only when you ask, so this page stays fast.
+      </p>
+      <button class="button" type="button" data-proto-load>Load prototype</button>
+    </div>
+  </div>
+  <figcaption class="proto__caption">
+    <a href={url} target="_blank" rel="noopener">Open in Figma, full screen<span class="visually-hidden"> (opens in a new tab)</span></a>
+    {device === 'desktop' && <span class="proto__note">Best viewed on a laptop or larger.</span>}
+  </figcaption>
+</figure>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-proto-load]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const frame = btn.closest<HTMLElement>('[data-proto]')!;
+      const status = document.createElement('p');
+      status.className = 'proto__loading';
+      status.setAttribute('role', 'status');
+      status.textContent = 'Loading prototype from Figma…';
+      const iframe = document.createElement('iframe');
+      iframe.src = frame.dataset.src!;
+      iframe.title = frame.dataset.title!;
+      iframe.allow = 'fullscreen; clipboard-write';
+      iframe.allowFullscreen = true;
+      iframe.addEventListener('load', () => status.remove(), { once: true });
+      frame.replaceChildren(status, iframe);
+      iframe.focus();
+    });
+  });
+</script>
+
+<style>
+  .proto { margin: 0; display: grid; gap: var(--space-3); }
+  .proto__frame {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface-subtle);
+    overflow: hidden;
+  }
+  .proto[data-device='mobile'] .proto__frame {
+    aspect-ratio: 9 / 17;
+    max-width: 26rem;
+    max-height: 85vh;
+    margin-inline: auto;
+  }
+  .proto[data-device='mobile'] .proto__caption { justify-content: center; }
+  .proto__facade {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: var(--space-3);
+    padding: var(--space-5);
+    text-align: center;
+    color: var(--color-text-primary);
+  }
+  .proto__facade svg { color: var(--color-action); }
+  .proto__title { font-size: var(--text-xl); font-weight: var(--weight-bold); }
+  .proto__hint { color: var(--color-text-secondary); max-width: 32ch; }
+  .proto__facade .button { margin-top: var(--space-2); }
+  .proto__caption {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-5);
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+  }
+  .proto__caption a { display: inline-flex; align-items: center; min-height: var(--tap-target); }
+  .proto__note { display: inline-flex; align-items: center; }
+  .proto__frame :global(iframe) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+  .proto__frame :global(.proto__loading) {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: var(--color-text-secondary);
+  }
+</style>

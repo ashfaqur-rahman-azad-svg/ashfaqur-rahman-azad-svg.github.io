@@ -1,0 +1,238 @@
+---
+import { render } from 'astro:content';
+import { getImage } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import Img from '../../components/Img.astro';
+import FigmaPrototype from '../../components/FigmaPrototype.astro';
+import { getProjects } from '../../lib/content';
+
+export async function getStaticPaths() {
+  const projects = await getProjects();
+  return projects.map((project, i) => ({
+    params: { slug: project.id },
+    props: { project, next: projects.length > 1 ? projects[(i + 1) % projects.length] : undefined },
+  }));
+}
+
+const { project, next } = Astro.props;
+const d = project.data;
+const { Content, headings } = await render(project);
+const toc = headings.filter((h) => h.depth === 2);
+const og = await getImage({ src: d.cover, width: 1200, format: 'jpeg', quality: 85 });
+
+const facts = [
+  ['Role', d.role],
+  ['Timeline', d.duration],
+  ['Team', d.team],
+  ['Platform', d.platform],
+  ['Tools', d.tools.join(', ')],
+].filter(([, v]) => v);
+---
+
+<Base title={d.title} description={d.summary} ogImage={og.src}>
+  <article>
+    <header class="cs-head container">
+      <a class="back" href="/#work">All case studies</a>
+      <p class="eyebrow">{d.year}{d.tags.length > 0 && ` · ${d.tags.join(' · ')}`}</p>
+      <h1 class="cs-title">{d.title}</h1>
+      <p class="lead">{d.summary}</p>
+      <dl class="facts">
+        {facts.map(([k, v]) => <div><dt>{k}</dt><dd>{v}</dd></div>)}
+      </dl>
+    </header>
+
+    <div class="container">
+      <div class="cs-cover">
+        <Img src={d.cover} alt={d.coverAlt} sizes="(min-width: 1184px) 1120px, 100vw" priority />
+      </div>
+    </div>
+
+    <section class="container tldr" aria-labelledby="tldr-title">
+      <h2 id="tldr-title" class="tldr__title">The short version</h2>
+      <div class="tldr__grid">
+        <div><h3>Problem</h3><p>{d.tldr.problem}</p></div>
+        <div><h3>What I did</h3><p>{d.tldr.approach}</p></div>
+        <div><h3>Outcome</h3><p>{d.tldr.outcome}</p></div>
+      </div>
+      {d.metrics.length > 0 && (
+        <ul class="metrics" aria-label="Results">
+          {d.metrics.map((m) => <li><span class="metrics__value">{m.value}</span> <span class="metrics__label">{m.label}</span></li>)}
+        </ul>
+      )}
+      {(d.prototypes.length > 0 || d.figmaFile) && (
+        <p class="tldr__jump">
+          {d.prototypes.length > 0 && <a href="#prototype">Jump to the interactive prototype</a>}
+          {d.figmaFile && <a href={d.figmaFile} target="_blank" rel="noopener">Open the Figma file<span class="visually-hidden"> (opens in a new tab)</span></a>}
+        </p>
+      )}
+    </section>
+
+    <div class="container cs-body">
+      {toc.length > 1 && (
+        <nav class="toc" aria-label="On this page">
+          <p class="toc__title">On this page</p>
+          <ol>
+            {toc.map((h) => <li><a href={`#${h.slug}`}>{h.text}</a></li>)}
+            {d.prototypes.length > 0 && <li><a href="#prototype">Prototype</a></li>}
+          </ol>
+        </nav>
+      )}
+      <div class="prose">
+        <Content />
+      </div>
+    </div>
+
+    {d.prototypes.length > 0 && (
+      <section id="prototype" class="section container protos" aria-labelledby="proto-title">
+        <div class="section-head">
+          <h2 id="proto-title">Try the prototype</h2>
+        </div>
+        <div class="protos__list" data-count={d.prototypes.length}>
+          {d.prototypes.map((p) => <FigmaPrototype {...p} />)}
+        </div>
+      </section>
+    )}
+
+    {next && (
+      <nav class="container next" aria-label="Next case study">
+        <a href={`/work/${next.id}`}>
+          <span class="eyebrow">Next case study</span>
+          <span class="next__title">{next.data.title}</span>
+        </a>
+      </nav>
+    )}
+  </article>
+</Base>
+
+<script>
+  const links = document.querySelectorAll<HTMLAnchorElement>('.toc a');
+  if (links.length) {
+    const map = new Map([...links].map((a) => [a.hash.slice(1), a]));
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (!e.isIntersecting) return;
+          links.forEach((l) => l.removeAttribute('aria-current'));
+          map.get(e.target.id)?.setAttribute('aria-current', 'true');
+        });
+      },
+      { rootMargin: '0px 0px -70% 0px' },
+    );
+    map.forEach((_, id) => { const el = document.getElementById(id); if (el) io.observe(el); });
+  }
+</script>
+
+<style>
+  .cs-head { display: grid; gap: var(--space-4); padding-block: var(--space-6) var(--space-7); }
+  .back { justify-self: start; display: inline-flex; align-items: center; min-height: var(--tap-target); font-size: var(--text-sm); }
+  .back::before { content: '←'; margin-right: var(--space-2); }
+  .cs-title { font-size: var(--text-4xl); max-width: 22ch; letter-spacing: -0.02em; }
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+    gap: var(--space-4) var(--space-6);
+    margin: var(--space-4) 0 0;
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--color-border);
+  }
+  .facts dt { font-size: var(--text-sm); color: var(--color-text-secondary); }
+  .facts dd { margin: 0; font-weight: var(--weight-bold); }
+
+  .cs-cover {
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    background: var(--color-media-bg);
+  }
+  .cs-cover :global(img) { width: 100%; }
+
+  .tldr { display: grid; gap: var(--space-5); padding-block: var(--space-8); }
+  .tldr__title { font-size: var(--text-3xl); }
+  .tldr__grid { display: grid; gap: var(--space-5); }
+  .tldr__grid h3 { font-size: var(--text-base); margin-bottom: var(--space-2); }
+  .tldr__grid p { color: var(--color-text-secondary); }
+  @media (min-width: 900px) {
+    .tldr__grid { grid-template-columns: repeat(3, 1fr); gap: var(--space-6); }
+  }
+  .metrics {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-5) var(--space-8);
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--color-border);
+  }
+  .metrics li { display: grid; }
+  .metrics__value { font-size: var(--text-3xl); font-weight: var(--weight-bold); line-height: var(--leading-tight); }
+  .metrics__label { color: var(--color-text-secondary); font-size: var(--text-sm); }
+  .tldr__jump { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-5); }
+  .tldr__jump a { display: inline-flex; align-items: center; min-height: var(--tap-target); font-weight: var(--weight-bold); }
+
+  .cs-body { display: grid; gap: var(--space-6); }
+  @media (min-width: 1024px) {
+    .cs-body { grid-template-columns: 14rem minmax(0, 1fr); gap: var(--space-8); align-items: start; }
+    .toc { position: sticky; top: calc(var(--header-height) + var(--space-6)); }
+  }
+  .toc { display: none; }
+  @media (min-width: 1024px) { .toc { display: block; } }
+  .toc__title { font-size: var(--text-sm); font-weight: var(--weight-bold); margin-bottom: var(--space-2); }
+  .toc ol { list-style: none; display: grid; border-left: 1px solid var(--color-border); }
+  .toc a {
+    display: block;
+    padding: var(--space-2) var(--space-4);
+    margin-left: -1px;
+    border-left: 2px solid transparent;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    font-size: var(--text-sm);
+  }
+  .toc a:hover { color: var(--color-text-primary); }
+  .toc a[aria-current] { color: var(--color-text-primary); border-left-color: var(--color-action); font-weight: var(--weight-bold); }
+
+  .prose { max-width: var(--measure); font-size: var(--text-lg); line-height: 1.6; }
+  .prose :global(> * + *) { margin-top: var(--space-5); }
+  .prose :global(h2) { font-size: var(--text-3xl); margin-top: var(--space-8); }
+  .prose :global(h2:first-child) { margin-top: 0; }
+  .prose :global(h3) { font-size: var(--text-2xl); margin-top: var(--space-7); }
+  .prose :global(h2 + *), .prose :global(h3 + *) { margin-top: var(--space-4); }
+  .prose :global(ul), .prose :global(ol) { padding-left: var(--space-5); }
+  .prose :global(li + li) { margin-top: var(--space-2); }
+  .prose :global(strong) { font-weight: var(--weight-bold); }
+  .prose :global(img) {
+    width: 100%;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+    background: var(--color-media-bg);
+  }
+  .prose :global(p:has(> img)) { margin-top: var(--space-6); }
+  .prose :global(p:has(> img) + p > em:only-child) { display: block; margin-top: calc(var(--space-3) * -1); font-size: var(--text-sm); font-style: normal; color: var(--color-text-secondary); }
+  .prose :global(blockquote) {
+    margin-inline: 0;
+    padding-left: var(--space-5);
+    border-left: 3px solid var(--color-action);
+    font-size: var(--text-xl);
+  }
+  .prose :global(hr) { border: 0; border-top: 1px solid var(--color-border); margin-block: var(--space-7); }
+  .prose :global(table) { width: 100%; border-collapse: collapse; font-size: var(--text-base); }
+  .prose :global(th), .prose :global(td) { text-align: left; padding: var(--space-3); border-bottom: 1px solid var(--color-border); vertical-align: top; }
+
+  .protos__list { display: grid; gap: var(--space-7); }
+  @media (min-width: 900px) {
+    .protos__list[data-count='2'] { grid-template-columns: 1fr 1fr; }
+  }
+
+  .next { padding-block: var(--space-6) var(--space-8); }
+  .next a {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-6);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-lg);
+    text-decoration: none;
+    color: var(--color-text-primary);
+    transition: background-color var(--duration-default) var(--ease);
+  }
+  .next a:hover { background: var(--color-surface-subtle); }
+  .next__title { font-size: var(--text-2xl); font-weight: var(--weight-bold); line-height: var(--leading-tight); }
+  .next a:hover .next__title { text-decoration: underline; text-underline-offset: 0.15em; }
+</style>

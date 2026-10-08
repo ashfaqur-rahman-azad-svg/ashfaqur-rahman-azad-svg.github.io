@@ -1,0 +1,93 @@
+---
+import { site } from '../site.config';
+import ThemeToggle from './ThemeToggle.astro';
+
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const links = [
+  { href: '/#work', label: 'Work', match: (p: string) => p === '/' || p.startsWith('/work') },
+  { href: '/screens', label: 'Screens', match: (p: string) => p.startsWith('/screens') },
+  { href: '/about', label: 'About', match: (p: string) => p.startsWith('/about') },
+];
+---
+
+<header class="header">
+  <div class="container header__inner">
+    <a class="header__name" href="/">
+      {site.name}<span class="visually-hidden">, home</span>
+    </a>
+    <nav class="header__nav" aria-label="Main">
+      <ul>
+        {links.map((l) => (
+          <li>
+            <a href={l.href} aria-current={l.match(path) ? 'page' : undefined}>{l.label}</a>
+          </li>
+        ))}
+        {site.resume && (
+          <li><a href={site.resume} target="_blank" rel="noopener">Resume<span class="visually-hidden"> (opens in a new tab)</span></a></li>
+        )}
+      </ul>
+    </nav>
+    <ThemeToggle />
+  </div>
+</header>
+
+<style>
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--color-bg);
+    border-bottom: 1px solid var(--color-border);
+  }
+  .header__inner {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas: 'name toggle' 'nav nav';
+    align-items: center;
+    column-gap: var(--space-4);
+    padding-block: var(--space-2);
+  }
+  .header__name {
+    grid-area: name;
+    font-weight: var(--weight-bold);
+    color: var(--color-text-primary);
+    text-decoration: none;
+    min-height: var(--tap-target);
+    display: inline-flex;
+    align-items: center;
+    justify-self: start;
+  }
+  .header__nav { grid-area: nav; }
+  .header__nav ul {
+    list-style: none;
+    display: flex;
+    gap: var(--space-1);
+    margin-inline: calc(var(--space-3) * -1);
+  }
+  .header__nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap-target);
+    padding-inline: var(--space-3);
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    border-radius: var(--radius-sm);
+  }
+  .header__nav a:hover { color: var(--color-text-primary); }
+  .header__nav a[aria-current='page'] {
+    color: var(--color-text-primary);
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.4em;
+  }
+
+  @media (min-width: 640px) {
+    .header__inner {
+      grid-template-columns: 1fr auto auto;
+      grid-template-areas: 'name nav toggle';
+      min-height: var(--header-height);
+      padding-block: 0;
+    }
+    .header__nav ul { margin-inline: 0; }
+  }
+</style>

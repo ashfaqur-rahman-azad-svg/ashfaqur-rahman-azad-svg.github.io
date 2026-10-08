@@ -1,0 +1,73 @@
+---
+import Base from '../layouts/Base.astro';
+import ProjectFeature from '../components/ProjectFeature.astro';
+import ScreenCard from '../components/ScreenCard.astro';
+import { getProjects, getScreens } from '../lib/content';
+import { site } from '../site.config';
+
+const projects = await getProjects();
+const screens = (await getScreens()).slice(0, 6);
+---
+
+<Base>
+  <section class="hero container" aria-labelledby="hero-title">
+    <p class="eyebrow">{site.name} · {site.role}, {site.location}</p>
+    <h1 id="hero-title" class="hero__title">{site.positioning}</h1>
+    <div class="hero__actions">
+      <a class="button" href="#work">See case studies</a>
+      <a class="button button--secondary" href="#contact">Contact me</a>
+    </div>
+  </section>
+
+  <section id="work" class="section container" aria-labelledby="work-title">
+    <div class="section-head">
+      <h2 id="work-title">Case studies</h2>
+      <p class="section-note">Each one opens with a 30-second summary.</p>
+    </div>
+    {projects.length > 0 ? (
+      <div class="features">
+        {projects.map((p, i) => <ProjectFeature project={p} priority={i === 0} />)}
+      </div>
+    ) : (
+      <p class="empty">Two case studies are being finalised and will be published here shortly. If you would like to see the work sooner, <a href={`mailto:${site.email}`}>email me</a> and I will send a walkthrough.</p>
+    )}
+  </section>
+
+  {screens.length > 0 && (
+    <section class="section section--subtle" aria-labelledby="screens-title">
+      <div class="container">
+        <div class="section-head">
+          <h2 id="screens-title">Screen designs</h2>
+          <a href="/screens">All screen designs</a>
+        </div>
+        <div class="masonry">
+          {screens.map((s) => <ScreenCard screen={s} />)}
+        </div>
+      </div>
+    </section>
+  )}
+</Base>
+
+<style>
+  .hero {
+    display: grid;
+    gap: var(--space-5);
+    padding-block: var(--space-7) 0;
+  }
+  @media (min-width: 1024px) { .hero { padding-block: var(--space-9) 0; } }
+  .hero__title {
+    font-size: var(--text-4xl);
+    max-width: 26ch;
+    letter-spacing: -0.02em;
+  }
+  #work { padding-top: var(--space-8); }
+  .hero__actions { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-2); }
+  .section-note { color: var(--color-text-secondary); }
+  .features { display: grid; gap: var(--space-8); }
+  @media (min-width: 1024px) { .features { gap: var(--space-9); } }
+  .section--subtle { background: var(--color-surface-subtle); border-top: 1px solid var(--color-border); }
+  .masonry { columns: 1; column-gap: var(--space-5); }
+  @media (min-width: 640px) { .masonry { columns: 2; } }
+  @media (min-width: 1024px) { .masonry { columns: 3; column-gap: var(--space-6); } }
+  .empty { color: var(--color-text-secondary); font-size: var(--text-lg); max-width: var(--measure); }
+</style>

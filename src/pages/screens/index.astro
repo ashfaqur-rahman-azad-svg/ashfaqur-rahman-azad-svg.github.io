@@ -1,0 +1,32 @@
+---
+import Base from '../../layouts/Base.astro';
+import ScreenCard from '../../components/ScreenCard.astro';
+import { getScreens } from '../../lib/content';
+
+const screens = await getScreens();
+---
+
+<Base title="Screen designs" description="UI screen designs and visual explorations made in Figma.">
+  <header class="page-head container">
+    <h1>Screen designs</h1>
+    <p class="lead">UI explorations from learning and practice. They show visual craft; the case studies show process and decisions.</p>
+  </header>
+  <section class="container section-body" aria-label="All screen designs">
+    {screens.length > 0 ? (
+      <div class="masonry">
+        {screens.map((s) => <ScreenCard screen={s} />)}
+      </div>
+    ) : (
+      <p class="lead">No screen designs published yet. The <a href="/#work">case studies</a> are the best place to start.</p>
+    )}
+  </section>
+</Base>
+
+<style>
+  .page-head { display: grid; gap: var(--space-4); padding-block: var(--space-8) var(--space-7); }
+  .page-head h1 { font-size: var(--text-4xl); letter-spacing: -0.02em; }
+  .section-body { padding-bottom: var(--space-8); }
+  .masonry { columns: 1; column-gap: var(--space-5); }
+  @media (min-width: 640px) { .masonry { columns: 2; } }
+  @media (min-width: 1024px) { .masonry { columns: 3; column-gap: var(--space-6); } }
+</style>

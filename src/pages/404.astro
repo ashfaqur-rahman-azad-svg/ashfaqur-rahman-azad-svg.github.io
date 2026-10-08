@@ -1,0 +1,16 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Page not found">
+  <section class="container nf">
+    <h1>This page does not exist</h1>
+    <p class="lead">The link may be old, or the project was renamed. Everything still on the site is reachable from the case studies.</p>
+    <p><a class="button" href="/#work">Go to case studies</a></p>
+  </section>
+</Base>
+
+<style>
+  .nf { display: grid; gap: var(--space-5); padding-block: var(--space-10); }
+  .nf h1 { font-size: var(--text-4xl); letter-spacing: -0.02em; }
+</style>

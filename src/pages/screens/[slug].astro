@@ -1,0 +1,81 @@
+---
+import { render } from 'astro:content';
+import { getImage } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import Img from '../../components/Img.astro';
+import FigmaPrototype from '../../components/FigmaPrototype.astro';
+import { getScreens } from '../../lib/content';
+
+export async function getStaticPaths() {
+  const screens = await getScreens();
+  return screens.map((screen, i) => ({
+    params: { slug: screen.id },
+    props: { screen, next: screens.length > 1 ? screens[(i + 1) % screens.length] : undefined },
+  }));
+}
+
+const { screen, next } = Astro.props;
+const d = screen.data;
+const { Content } = await render(screen);
+const og = await getImage({ src: d.images[0].src, width: 1200, format: 'jpeg', quality: 85 });
+---
+
+<Base title={d.title} description={d.description} ogImage={og.src}>
+  <article>
+    <header class="head container">
+      <a class="back" href="/screens">All screen designs</a>
+      <h1>{d.title}</h1>
+      <p class="lead">{d.description}</p>
+      <p class="meta">{d.year} · {d.tools.join(', ')}</p>
+      {d.figmaFile && (
+        <p><a class="file-link" href={d.figmaFile} target="_blank" rel="noopener">Open the Figma file<span class="visually-hidden"> (opens in a new tab)</span></a></p>
+      )}
+    </header>
+
+    <div class="container body">
+      <div class="notes"><Content /></div>
+
+      {d.prototype && <FigmaPrototype {...d.prototype} />}
+
+      <ul class="gallery" data-count={d.images.length}>
+        {d.images.map((img, i) => (
+          <li>
+            <Img src={img.src} alt={img.alt} sizes={d.images.length > 1 ? '(min-width: 900px) 540px, 100vw' : '(min-width: 1184px) 1120px, 100vw'} priority={i === 0} />
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    {next && (
+      <nav class="container next" aria-label="Next screen design">
+        <a href={`/screens/${next.id}`}>Next: {next.data.title}</a>
+      </nav>
+    )}
+  </article>
+</Base>
+
+<style>
+  .head { display: grid; gap: var(--space-4); padding-block: var(--space-6) var(--space-7); }
+  .head h1 { font-size: var(--text-4xl); letter-spacing: -0.02em; max-width: 22ch; }
+  .back { justify-self: start; display: inline-flex; align-items: center; min-height: var(--tap-target); font-size: var(--text-sm); }
+  .back::before { content: '←'; margin-right: var(--space-2); }
+  .meta { font-size: var(--text-sm); color: var(--color-text-secondary); }
+  .file-link { display: inline-flex; align-items: center; min-height: var(--tap-target); font-weight: var(--weight-bold); }
+  .body { display: grid; gap: var(--space-7); padding-bottom: var(--space-8); }
+  .notes { max-width: var(--measure); font-size: var(--text-lg); color: var(--color-text-secondary); }
+  .notes :global(> * + *) { margin-top: var(--space-4); }
+  .notes:empty { display: none; }
+  .gallery { list-style: none; display: grid; gap: var(--space-5); align-items: start; }
+  @media (min-width: 900px) {
+    .gallery:not([data-count='1']) { grid-template-columns: 1fr 1fr; gap: var(--space-6); }
+  }
+  .gallery li {
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    background: var(--color-media-bg);
+  }
+  .gallery :global(img) { width: 100%; }
+  .next { padding-bottom: var(--space-8); }
+  .next a { display: inline-flex; align-items: center; min-height: var(--tap-target); font-size: var(--text-lg); font-weight: var(--weight-bold); }
+</style>

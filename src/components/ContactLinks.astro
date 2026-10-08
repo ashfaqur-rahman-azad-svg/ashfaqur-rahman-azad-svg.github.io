@@ -1,0 +1,24 @@
+---
+import { site } from '../site.config';
+
+const secondary = [
+  { label: 'LinkedIn', href: site.linkedin },
+  { label: 'Resume', href: site.resume },
+  { label: 'Dribbble', href: site.dribbble },
+  { label: 'Behance', href: site.behance },
+].filter((l) => l.href);
+---
+
+<div class="contact">
+  <a class="button" href={`mailto:${site.email}`}>Email {site.email}</a>
+  {secondary.map((l) => (
+    <a class="button button--secondary" href={l.href} target="_blank" rel="noopener">
+      {l.label}<span class="visually-hidden"> (opens in a new tab)</span>
+    </a>
+  ))}
+</div>
+
+<style>
+  .contact { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+  .contact .button:first-child { overflow-wrap: anywhere; }
+</style>

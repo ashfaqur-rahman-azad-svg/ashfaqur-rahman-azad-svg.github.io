@@ -1,0 +1,118 @@
+/*
+  Design tokens. Named by role, never by appearance.
+  Contrast (WCAG 2.2), light / dark:
+    text-primary on bg     16.5:1 / 15.9:1
+    text-secondary on bg    7.2:1 /  7.9:1   (>= 6.6:1 on every surface)
+    action on bg            5.4:1 /  8.3:1   (>= 4.98:1 on every surface)
+    on-action on action     5.7:1 /  7.7:1
+    border-strong on bg     3.4:1 /  3.9:1   (UI component minimum is 3:1)
+*/
+
+:root {
+  /* Color. One interactive hue; everything else is warm neutral so the work is the color on the page. */
+  --color-bg: #FAFAF7;
+  --color-surface: #FFFFFF;
+  --color-surface-subtle: #F1F0EA;
+  --color-border: #E2E0D8;
+  --color-border-strong: #8C887F;
+  --color-text-primary: #1C1B18;
+  --color-text-secondary: #57544D;
+  --color-action: #B83C0E;
+  --color-action-hover: #9A320B;
+  --color-on-action: #FFFFFF;
+  --color-focus: #B83C0E;
+  --color-media-bg: #E9E7E0;
+  color-scheme: light;
+
+  /* Type. System stack: zero font downloads, native rendering on every OS. Swap the family here if you license a typeface. */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
+
+  /* Scale locked from a 16px body; steps of 2px at the small end, 4-8px+ at the large end. Nothing below 12px. */
+  --text-xs: 0.75rem;    /* 12 labels only */
+  --text-sm: 0.875rem;   /* 14 meta */
+  --text-base: 1rem;     /* 16 body */
+  --text-lg: 1.125rem;   /* 18 lead */
+  --text-xl: 1.25rem;    /* 20 h4 */
+  --text-2xl: 1.5rem;    /* 24 h3 */
+  --text-3xl: 2rem;      /* 32 h2 */
+  --text-4xl: clamp(2.25rem, 1.6rem + 2.6vw, 3.5rem); /* 36 -> 56 display */
+
+  --weight-regular: 400;
+  --weight-bold: 600;
+
+  --leading-tight: 1.2;  /* headings */
+  --leading-normal: 1.5; /* body */
+
+  /* Spacing. 8pt grid with a 4pt half-step for icon and text nudges. */
+  --space-1: 0.25rem;  /* 4 */
+  --space-2: 0.5rem;   /* 8 */
+  --space-3: 0.75rem;  /* 12 */
+  --space-4: 1rem;     /* 16 */
+  --space-5: 1.5rem;   /* 24 */
+  --space-6: 2rem;     /* 32 */
+  --space-7: 3rem;     /* 48 */
+  --space-8: 4rem;     /* 64 */
+  --space-9: 6rem;     /* 96 */
+  --space-10: 8rem;    /* 128 */
+
+  /* Layout. 1120 desktop container, 16px mobile gutter, ~68 characters for reading text. */
+  --container: 70rem;
+  --gutter: var(--space-4);
+  --measure: 68ch;
+  --header-height: 4rem;
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-full: 999px;
+
+  /* Motion. 150ms default; 100ms for direct feedback. Reduced-motion users get none. */
+  --duration-fast: 100ms;
+  --duration-default: 150ms;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+
+  --tap-target: 44px;
+}
+
+@media (min-width: 640px) {
+  :root { --gutter: var(--space-5); }
+}
+@media (min-width: 1024px) {
+  :root { --gutter: var(--space-6); }
+}
+
+/* Dark theme: values only, no component changes. Applies when the OS prefers dark and the visitor has not chosen light. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-bg: #131311;
+    --color-surface: #1B1B18;
+    --color-surface-subtle: #24231F;
+    --color-border: #33322D;
+    --color-border-strong: #77736A;
+    --color-text-primary: #EEEDE8;
+    --color-text-secondary: #ADA9A0;
+    --color-action: #FF8F5A;
+    --color-action-hover: #FFAA80;
+    --color-on-action: #1C1B18;
+    --color-focus: #FF8F5A;
+    --color-media-bg: #24231F;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --color-bg: #131311;
+  --color-surface: #1B1B18;
+  --color-surface-subtle: #24231F;
+  --color-border: #33322D;
+  --color-border-strong: #77736A;
+  --color-text-primary: #EEEDE8;
+  --color-text-secondary: #ADA9A0;
+  --color-action: #FF8F5A;
+  --color-action-hover: #FFAA80;
+  --color-on-action: #1C1B18;
+  --color-focus: #FF8F5A;
+  --color-media-bg: #24231F;
+  color-scheme: dark;
+}

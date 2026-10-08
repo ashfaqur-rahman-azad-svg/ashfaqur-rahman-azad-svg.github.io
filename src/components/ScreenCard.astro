@@ -1,0 +1,42 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import Img from './Img.astro';
+
+interface Props {
+  screen: CollectionEntry<'screens'>;
+}
+
+const { screen } = Astro.props;
+const d = screen.data;
+const first = d.images[0];
+---
+
+<article class="screen-card">
+  <div class="screen-card__media">
+    <Img src={first.src} alt={first.alt} sizes="(min-width: 1024px) 360px, (min-width: 640px) 50vw, 100vw" />
+  </div>
+  <h3 class="screen-card__title"><a href={`/screens/${screen.id}`}>{d.title}</a></h3>
+  <p class="screen-card__meta">
+    {d.year} · {d.images.length} {d.images.length === 1 ? 'screen' : 'screens'}{d.prototype && ' · Prototype'}
+  </p>
+</article>
+
+<style>
+  .screen-card { position: relative; display: grid; gap: var(--space-2); break-inside: avoid; margin-bottom: var(--space-6); }
+  .screen-card__media {
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: var(--color-media-bg);
+    border: 1px solid var(--color-border);
+    margin-bottom: var(--space-2);
+  }
+  .screen-card__media :global(img) { width: 100%; transition: transform var(--duration-default) var(--ease); }
+  .screen-card:hover .screen-card__media :global(img) { transform: scale(1.01); }
+  .screen-card__title { font-size: var(--text-lg); }
+  .screen-card__title a { color: var(--color-text-primary); text-decoration: none; }
+  .screen-card__title a::after { content: ''; position: absolute; inset: 0; border-radius: var(--radius-md); }
+  .screen-card__title a:focus-visible { outline: none; }
+  .screen-card__title a:focus-visible::after { outline: 2px solid var(--color-focus); outline-offset: 4px; }
+  .screen-card:hover .screen-card__title a { text-decoration: underline; text-underline-offset: 0.2em; }
+  .screen-card__meta { font-size: var(--text-sm); color: var(--color-text-secondary); }
+</style>
