@@ -22,7 +22,7 @@ const screens = (await getScreens()).slice(0, 6);
   <section id="work" class="section container" aria-labelledby="work-title">
     <div class="section-head">
       <h2 id="work-title">Case studies</h2>
-      <p class="section-note">Each one opens with a 30-second summary.</p>
+      {projects.length > 0 && <p class="section-note">Each one opens with a 30-second summary.</p>}
     </div>
     {projects.length > 0 ? (
       <div class="features">
